@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 
         std::string sFilename;
         char *filePath = NULL;
-        int k = 6;
+        int k = 16;
 
         findCudaDevice(argc, (const char **)argv);
 
@@ -102,8 +102,6 @@ int main(int argc, char *argv[]) {
         if (checkCmdLineFlag(argc, (const char **)argv, "k")) {
             k = getCmdLineArgumentInt(argc, (const char **)argv, "k=");
         }
-
-        std::cout << "k: " << k << std::endl;
 
         // Load image
         int nWidthPixels, nHeightPixels, nPitch;

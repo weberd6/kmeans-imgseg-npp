@@ -48,10 +48,6 @@ Npp8u *loadColorImage(const std::string &sFilename, int *nWidthPixels, int *nHei
     Npp8u *h_pSrcImg = (Npp8u *)std::malloc(height * pitch);
     std::memcpy(h_pSrcImg, bits, height * pitch);
 
-    std::cout << "Width: " << width << std::endl;
-    std::cout << "Height: " << height << std::endl;
-    std::cout << "Pitch: " << pitch << std::endl;
-
     *nWidthPixels = width;
     *nHeightPixels = height;
     *pStepBytes = pitch;

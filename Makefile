@@ -3,7 +3,7 @@ CUDA_LIB_DIR = $(CUDA_ROOT_DIR)/lib64
 CUDA_INC_DIR = $(CUDA_ROOT_DIR)/include
 
 SRC_DIR = src
-OBJ_DIR = bin
+OBJ_DIR = src
 INC_DIR = include
 
 EXE = kmeans_seg_npp
@@ -37,4 +37,4 @@ $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cu $(INC_DIR)/%.h
 
 # Clean objects in object directory.
 clean:
-	$(RM) bin/* *.o $(EXE)
+	$(RM) src/*.o $(EXE)

@@ -59,11 +59,6 @@ Npp8u *createAndInitializeCentroids(int k, Npp8u *d_pSrcImg_hsv, int nWidthPixel
 
         int img_idx = 3 * (y * nWidthPixels + x);
 
-        std::cout << "Centroid " << i << ": ("
-                  << +h_pSrcImg_hsv[img_idx] << ", "
-                  << +h_pSrcImg_hsv[img_idx + 1] << ", "
-                  << +h_pSrcImg_hsv[img_idx + 2] << ")" << std::endl;
-
         Npp8u *d_pCentroid = &d_pCentroids[i * nHeightPixels * nDeviceColorImgStep];
 
         NPP_CHECK_NPP(nppiSet_8u_C3R(&h_pSrcImg_hsv[img_idx], d_pCentroid, nDeviceColorImgStep, fullSizeROI));
@@ -247,6 +242,7 @@ void assignmentStep(int k, const Npp8u *d_pSrcImg, const Npp8u *d_pCentroids, in
         nppSetStream(0);
     }
 
+
     // Initialize minimum distances to maximum value
     NPP_CHECK_NPP(nppiSet_8u_C1R(255, d_pMinDistance, nDistanceStep, fullSizeROI));
 
@@ -352,7 +348,7 @@ void updateStep(int k, const Npp8u *d_pSrcImg, Npp8u *d_pCentroids, int nColorIm
     free(h_pAvgValues);
 }
 
-Npp8u *copyAssignedCentroidsToImage(int k, const Npp8u *d_pAssignedCentroids, Npp8u *d_pMask, int nMaskStep,
+Npp8u *copyAssignedCentroidsToImage(int k, const Npp8u *d_pAssignedCentroids, Npp8u *d_pMasks, int nMaskStep,
                                     const Npp8u *d_pCentroids, int nColorImgStep,
                                     int nWidthPixels, int nHeightPixels, NppStreamContext *streamContexts)
 {
@@ -364,6 +360,7 @@ Npp8u *copyAssignedCentroidsToImage(int k, const Npp8u *d_pAssignedCentroids, Np
     for (int i = 0; i < k; i++)
     {
         const Npp8u *d_pCentroid = &d_pCentroids[i * nHeightPixels * nColorImgStep];
+        Npp8u *d_pMask = &d_pMasks[i * nHeightPixels * nMaskStep];
 
         NPP_CHECK_NPP(nppiCompareC_8u_C1R_Ctx(d_pAssignedCentroids, nMaskStep, i,
                                               d_pMask, nMaskStep, fullSizeROI, NPP_CMP_EQ,
