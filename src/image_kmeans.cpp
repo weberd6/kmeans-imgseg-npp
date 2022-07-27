@@ -1,48 +1,21 @@
 #include <image_kmeans.h>
 #include <image_conversion.h>
+#include <image_copy.h>
 #include <helper_cuda.h>
 #include <Exceptions.h>
 #include <tuple>
 #include <iostream>
 
-std::tuple<Npp8u *, int> copyImageFromHostToDevice(Npp8u *h_pImg, int nWidthPixels, int nHeightPixels, int nHostColorImgStep)
-{
-    if (nppGetStream() != 0)
-    {
-        nppSetStream(0);
-    }
-
-    int nDeviceColorImgStep;
-    Npp8u *d_pImg = nppiMalloc_8u_C3(nWidthPixels, nHeightPixels, &nDeviceColorImgStep);
-    NPP_ASSERT(d_pImg != NULL);
-
-    cudaMemcpy2D(d_pImg, nDeviceColorImgStep, h_pImg, nHostColorImgStep,
-                 3 * nWidthPixels, nHeightPixels, cudaMemcpyHostToDevice);
-
-    return {d_pImg, nDeviceColorImgStep};
-}
-
-Npp8u *copyImageFromDeviceToHost(Npp8u *d_pImg, int nWidthPixels, int nHeightPixels, int nHostColorImgStep, int nDeviceColorImgStep) {
-
-    Npp8u *h_pImg = (Npp8u *)malloc(nHeightPixels * nHostColorImgStep);
-
-    cudaMemcpy2D(h_pImg, nHostColorImgStep,
-                 d_pImg, nDeviceColorImgStep,
-                 3 * nWidthPixels, nHeightPixels, cudaMemcpyDeviceToHost);
-
-    return h_pImg;
-}
-
 Npp8u *createAndInitializeCentroids(int k, Npp8u *d_pSrcImg_hsv, int nWidthPixels, int nHeightPixels,
-                                    int nDeviceColorImgStep, int nHostColorImgStep)
+                                    int nDeviceColorImgStep)
 {
     // Determine initial centroids randomly
 
     Npp8u *d_pCentroids = NULL;
     cudaMalloc((Npp8u **)&d_pCentroids, k * nHeightPixels * nDeviceColorImgStep);
 
-    Npp8u *h_pSrcImg_hsv = (Npp8u *)malloc(nHeightPixels * nHostColorImgStep);
-    cudaMemcpy2D(h_pSrcImg_hsv, nHostColorImgStep, d_pSrcImg_hsv, nDeviceColorImgStep,
+    Npp8u *h_pSrcImg_hsv = (Npp8u *)malloc(nHeightPixels * 3 * nWidthPixels);
+    cudaMemcpy2D(h_pSrcImg_hsv, 3 * nWidthPixels, d_pSrcImg_hsv, nDeviceColorImgStep,
                  3 * nWidthPixels, nHeightPixels, cudaMemcpyDeviceToHost);
 
     NppiSize fullSizeROI = {(int)nWidthPixels, (int)nHeightPixels};
@@ -199,16 +172,6 @@ void HSVDistanceBetweenPixels(const Npp8u *d_pImg1, const Npp8u *d_pImg2, int nC
     NPP_CHECK_NPP(nppiColorToGray_8u_C3C1R_Ctx(d_pDifference, nColorImgStep,
                                                d_pDistance, nDistanceStep,
                                                fullSizeROI, aCoeffs, ctx));
-
-    // Sqrt of the sum of square differences
-    NPP_CHECK_NPP(nppiSqrt_8u_C1IRSfs_Ctx(d_pDistance, nDistanceStep,
-                                          fullSizeROI, 0, ctx));
-
-    // Rescale
-    NPP_CHECK_NPP(nppiMulC_8u_C1IRSfs_Ctx(16, d_pDistance, nDistanceStep, fullSizeROI, 0, ctx));
-
-    cudaFreeAsync(d_pDifference, ctx.hStream);
-    cudaFreeAsync(d_pDistance255, ctx.hStream);
 }
 
 void calculateDistances(int k, const Npp8u *d_pSrcImg, const Npp8u *d_pCentroids, int nColorImgStep,
@@ -399,7 +362,7 @@ Npp8u *imageKmeans(int k, Npp8u *h_pSrcImg_rgb, int nWidthPixels, int nHeightPix
     d_pSrcImg_hsv = convertRGBToHSV(d_pSrcImg_rgb, nWidthPixels, nHeightPixels, nDeviceColorImgStep);
 
     d_pCentroidImgs = createAndInitializeCentroids(k, d_pSrcImg_hsv, nWidthPixels, nHeightPixels,
-                                                   nDeviceColorImgStep, nHostColorImgStep);
+                                                   nDeviceColorImgStep);
 
     std::tie(streams, nppStreamContexts) = createStreamContexts(k);
 

@@ -7,9 +7,11 @@ OBJ_DIR = src
 INC_DIR = include
 
 EXE = kmeans_seg_npp
-OBJS = $(OBJ_DIR)/main.o $(OBJ_DIR)/image_io.o $(OBJ_DIR)/image_conversion.o $(OBJ_DIR)/image_kmeans.o $(OBJ_DIR)/Exceptions.o
+OBJS = $(OBJ_DIR)/main.o $(OBJ_DIR)/image_io.o $(OBJ_DIR)/image_copy.o \
+       $(OBJ_DIR)/image_conversion.o $(OBJ_DIR)/image_kmeans.o  $(OBJ_DIR)/Exceptions.o
+
 LINK_FLAGS = -L$(CUDA_LIB_DIR)
-LINK_LIBS = -lcudart -lnppist -lnppitc -lnppial -lnppidei -lnppicc -lnppisu -lnppif -lnppc -lculibos -lfreeimage
+LINK_LIBS = -lcudart -lnppc -lnppidei -lnppist -lnppisu -lnppial -lnppitc -lnppicc -lculibos -lfreeimage
 
 CC = g++
 CC_FLAGS = -I$(INC_DIR) -I$(CUDA_INC_DIR)
